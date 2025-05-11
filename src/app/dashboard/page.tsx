@@ -30,10 +30,16 @@ interface ResultsType {
   perQuestionTimers: number[];
   totalTime: number;
 }
+type QuestionResult = {
+  question: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+};
 
 export default function Dashboard() {
   const router = useRouter();
-  const [questionResults, setQuestionResults] = useState<any[]>([]);
+  const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
   const [results, setResults] = useState<ResultsType | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
 
