@@ -21,6 +21,9 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import { useRouter } from "next/navigation";
+import MathRenderer from "../maths";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 interface ResultsType {
   score: number;
@@ -30,15 +33,25 @@ interface ResultsType {
 
 export default function Dashboard() {
   const router = useRouter();
-
+  const [questionResults, setQuestionResults] = useState<any[]>([]);
   const [results, setResults] = useState<ResultsType | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("quizResults");
+    const storedQuestions = sessionStorage.getItem("questionResults");
     if (stored) {
       setResults(JSON.parse(stored));
     }
+    if (storedQuestions) {
+      setQuestionResults(JSON.parse(storedQuestions));
+    }
+    setHasMounted(true);
   }, []);
+
+  if (!hasMounted) {
+    return null;
+  }
 
   if (!results) {
     return (
@@ -95,6 +108,7 @@ export default function Dashboard() {
   ];
 
   const handleRetry = () => {
+    sessionStorage.clear();
     router.push("/");
   };
 
@@ -321,6 +335,173 @@ export default function Dashboard() {
                     variant="outlined"
                   />
                 </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card
+            sx={{
+              width: "100%",
+              borderRadius: 2,
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+              overflow: "hidden",
+              border: "1px solid #e0e0e0",
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: "#f2e6ff", // Light purple background
+                py: 2.5,
+                px: 3,
+                borderBottom: "1px solid #e0e0e0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography variant="h5" fontWeight="bold" color="#5e35b1">
+                Question Review
+              </Typography>
+              <Chip
+                label={`${
+                  questionResults.filter(
+                    (r) => r.selectedAnswer === r.correctAnswer
+                  ).length
+                }/${questionResults.length} Correct`}
+                color="primary"
+                size="medium"
+                sx={{ fontWeight: "medium" }}
+              />
+            </Box>
+
+            <CardContent sx={{ p: 0 }}>
+              <Stack spacing={0} divider={<Divider />}>
+                {questionResults.map((res, idx) => (
+                  <Paper
+                    key={idx}
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      bgcolor:
+                        res.selectedAnswer === res.correctAnswer
+                          ? "#edf7ed" // Light green background for correct
+                          : "#fdeded", // Light red background for incorrect
+                      transition: "all 0.2s ease-in-out",
+                      "&:hover": {
+                        bgcolor:
+                          res.selectedAnswer === res.correctAnswer
+                            ? "#dff0df" // Slightly darker green on hover
+                            : "#fadddd", // Slightly darker red on hover
+                      },
+                    }}
+                  >
+                    <Stack spacing={2}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            bgcolor: "#673ab7", // Purple background
+                            color: "white",
+                            width: 32,
+                            height: 32,
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {idx + 1}
+                        </Box>
+                        <Typography
+                          variant="h6"
+                          color="text.primary"
+                          sx={{ lineHeight: 1.4 }}
+                        >
+                          <MathRenderer text={res.question} />
+                        </Typography>
+                      </Box>
+
+                      <Stack spacing={1} sx={{ pl: 6 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {res.selectedAnswer === res.correctAnswer ? (
+                            <CheckCircleIcon
+                              sx={{ color: "#4caf50" }}
+                              fontSize="small"
+                            />
+                          ) : (
+                            <CancelIcon
+                              sx={{ color: "#f44336" }}
+                              fontSize="small"
+                            />
+                          )}
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            Your answer:{" "}
+                            <MathRenderer text={res.selectedAnswer} />
+                          </Typography>
+                        </Box>
+
+                        {res.selectedAnswer !== res.correctAnswer && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <CheckCircleIcon
+                              sx={{ color: "#4caf50" }}
+                              fontSize="small"
+                            />
+                            <Typography
+                              variant="body1"
+                              sx={{ fontWeight: 500 }}
+                            >
+                              Correct answer:{" "}
+                              <MathRenderer text={res.correctAnswer} />
+                            </Typography>
+                          </Box>
+                        )}
+
+                        <Chip
+                          label={res.difficulty}
+                          size="small"
+                          sx={{
+                            alignSelf: "flex-start",
+                            mt: 1,
+                            bgcolor:
+                              res.difficulty === "Easy"
+                                ? "#e8f5e9"
+                                : res.difficulty === "Medium"
+                                ? "#fff3e0"
+                                : "#ffebee",
+                            color:
+                              res.difficulty === "Easy"
+                                ? "#2e7d32"
+                                : res.difficulty === "Medium"
+                                ? "#e65100"
+                                : "#c62828",
+                            borderColor:
+                              res.difficulty === "Easy"
+                                ? "#a5d6a7"
+                                : res.difficulty === "Medium"
+                                ? "#ffcc80"
+                                : "#ef9a9a",
+                            border: "1px solid",
+                          }}
+                        />
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))}
               </Stack>
             </CardContent>
           </Card>

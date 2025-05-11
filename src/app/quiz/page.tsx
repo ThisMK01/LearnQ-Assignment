@@ -30,7 +30,10 @@ interface Question {
   question: string;
   options: string[];
   correctOption: number;
+  marks: number;
+  difficulty: DifficultyLevel;
 }
+type DifficultyLevel = "Easy" | "Medium" | "Hard";
 
 export default function QuizPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -52,10 +55,24 @@ export default function QuizPage() {
         | "Hard"
         | "Any") || "Any";
 
-    const questionList =
-      difficulty === "Any"
-        ? Object.values(questionData.questions).flat()
-        : questionData.questions[difficulty];
+    let questionList: Question[] = [];
+
+    if (difficulty === "Any") {
+      for (const level of ["Easy", "Medium", "Hard"] as DifficultyLevel[]) {
+        const questionsWithDifficulty = questionData.questions[level].map(
+          (q) => ({
+            ...q,
+            difficulty: level,
+          })
+        );
+        questionList.push(...questionsWithDifficulty);
+      }
+    } else {
+      questionList = questionData.questions[difficulty].map((q) => ({
+        ...q,
+        difficulty,
+      }));
+    }
 
     const shuffled = [...questionList].sort(() => 0.5 - Math.random());
     setQuestions(shuffled.slice(0, 4));
@@ -102,11 +119,35 @@ export default function QuizPage() {
   };
 
   const handleNext = () => {
+    const currentQuestion = questions[index];
+    const selectedAnswer = selectedAnswers[index];
+    const selectedOptionText =
+      selectedAnswer !== undefined
+        ? currentQuestion.options[selectedAnswer - 1]
+        : null;
+
+    const correctAnswer =
+      currentQuestion.options[currentQuestion.correctOption - 1];
+    const difficulty = currentQuestion.difficulty;
+
+    const prevResults = JSON.parse(
+      sessionStorage.getItem("questionResults") || "[]"
+    );
+
+    prevResults.push({
+      question: currentQuestion.question,
+      selectedAnswer: selectedOptionText,
+      correctAnswer,
+      difficulty,
+    });
+
+    sessionStorage.setItem("questionResults", JSON.stringify(prevResults));
     // If we are on the last question, finish the quiz
     if (index + 1 === questions.length) {
       if (document.fullscreenElement) {
         document.exitFullscreen();
       }
+
       const score = calculateScore();
       const totalTimeTaken = totaltime();
 
