@@ -3,11 +3,11 @@ import Katex from "@matejmazur/react-katex";
 import "katex/dist/katex.min.css";
 
 interface MathRendererProps {
-  text: string;
+  text?: string;
 }
 
 function MathRenderer({ text }: MathRendererProps) {
-  const parts = text.split(/(\$\$.*?\$\$|\$.*?\$)/);
+  const parts = (text || "").split(/(\$\$.*?\$\$|\$.*?\$)/);
 
   return (
     <span style={{ display: "inline" }}>

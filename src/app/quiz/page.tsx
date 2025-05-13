@@ -82,6 +82,7 @@ export default function QuizPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setPerQuestionTimers((prev) => {
+        
         const updated = [...prev];
         updated[index] += 1;
         return updated;
